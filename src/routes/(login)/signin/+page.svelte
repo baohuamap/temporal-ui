@@ -1,5 +1,6 @@
 <script lang="ts">
   import { BROWSER } from 'esm-env';
+  import { onMount } from 'svelte';
 
   import { page } from '$app/stores';
 
@@ -15,6 +16,18 @@
 
   let { settings } = data;
   const error = $page.url.searchParams.get('error');
+
+  onMount(() => {
+    if (BROWSER && !error) {
+      window.location.assign(
+        routeForAuthentication({
+          settings,
+          searchParams: $page.url.searchParams,
+          originUrl: $page.url.origin,
+        }),
+      );
+    }
+  });
 </script>
 
 <PageTitle title="Login" url={$page.url.href} />
@@ -23,33 +36,37 @@
   <FeedbackButton />
 </header>
 <section class="my-[20vh] text-center">
-  <h1 class="text-7xl font-semibold sm:text-8xl" data-testid="login-title">
-    Welcome back.
-  </h1>
-  <p class="my-7" data-testid="login-info">Let's get you signed in.</p>
-  <div class="flex items-center justify-center">
-    <Button
-      data-testid="login-button"
-      leadingIcon="lock"
-      on:click={() => {
-        if (BROWSER) {
-          window.location.assign(
-            routeForAuthentication({
-              settings,
-              searchParams: $page.url.searchParams,
-              originUrl: $page.url.origin,
-            }),
-          );
-        }
-      }}>Continue to SSO</Button
-    >
-  </div>
-
   {#if error}
+    <h1 class="text-7xl font-semibold sm:text-8xl" data-testid="login-title">
+      Welcome back.
+    </h1>
+    <p class="my-7" data-testid="login-info">Let's get you signed in.</p>
+    <div class="flex items-center justify-center">
+      <Button
+        data-testid="login-button"
+        leadingIcon="lock"
+        on:click={() => {
+          if (BROWSER) {
+            window.location.assign(
+              routeForAuthentication({
+                settings,
+                searchParams: $page.url.searchParams,
+                originUrl: $page.url.origin,
+              }),
+            );
+          }
+        }}>Continue to SSO</Button
+      >
+    </div>
     <div class="my-12 flex flex-col items-center justify-start gap-2">
       <p class="border border-orange-500 bg-orange-100 p-5 text-center">
         {error}
       </p>
     </div>
+  {:else}
+    <h1 class="text-7xl font-semibold sm:text-8xl" data-testid="login-title">
+      Redirecting...
+    </h1>
+    <p class="my-7" data-testid="login-info">Please wait while we redirect you to SSO.</p>
   {/if}
 </section>
